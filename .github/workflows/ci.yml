@@ -349,13 +349,16 @@ jobs:
 
       - name: Test database connectivity
         run: |
-          # Try to connect to database
-          docker compose exec -T database mysql -uroot -ptest_root_pass_123 -e "SELECT VERSION();"
-
-          if [ $? -eq 0 ]; then
-            echo "✓ Database connection successful"
+          # Try to connect to database (MariaDB may not have mysql command immediately available)
+          # Try both mariadb and mysql commands
+          if docker compose exec -T database mariadb -uroot -ptest_root_pass_123 -e "SELECT VERSION();" 2>/dev/null; then
+            echo "✓ Database connection successful (using mariadb command)"
+          elif docker compose exec -T database mysql -uroot -ptest_root_pass_123 -e "SELECT VERSION();" 2>/dev/null; then
+            echo "✓ Database connection successful (using mysql command)"
           else
             echo "ERROR: Could not connect to database"
+            echo "Database logs:"
+            docker compose logs database
             exit 1
           fi
 
