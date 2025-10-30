@@ -1,24 +1,19 @@
 FROM python:3.11-slim
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    mariadb-client \
-    cron \
-    && rm -rf /var/lib/apt/lists/*
-
 # Set working directory
 WORKDIR /app
 
-# Copy requirements and install Python packages
+# Install system dependencies, Python packages, and setup in a single layer
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    mariadb-client \
+    cron \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir -r requirements.txt \
+    && touch /var/log/cron.log
 
-# Copy backup script
-COPY backup.py .
-COPY entrypoint.sh .
+# Copy backup script and entrypoint
+COPY backup.py entrypoint.sh ./
 RUN chmod +x entrypoint.sh
-
-# Create cron log file
-RUN touch /var/log/cron.log
 
 ENTRYPOINT ["/app/entrypoint.sh"]
