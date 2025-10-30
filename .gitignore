@@ -1,0 +1,38 @@
+# Environment variables (contains secrets!)
+.env
+.env.local
+.env.*.local
+
+# Google credentials (NEVER commit this!)
+google-credentials.json
+*-credentials.json
+credentials.json
+*.key
+*.pem
+
+# Backups (may contain sensitive data)
+backups/*.sql
+backups/*.sql.gz
+backups/*.sql.gz.enc
+backups/*.enc
+
+# Docker volumes
+volumes/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
