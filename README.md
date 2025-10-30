@@ -27,6 +27,23 @@ A complete Docker setup for running LimeSurvey on a Raspberry Pi with automatic 
 - Fully autonomous and self-healing
 - **GitHub Actions CI/CD** - Automated testing and security scanning
 
+## 📚 Documentation
+
+### Essential Reading (Start Here)
+1. **[QUICKSTART.md](QUICKSTART.md)** - 30-minute setup guide for first-time deployment
+2. **[BACKUP_GUIDE.md](BACKUP_GUIDE.md)** - Backup configuration, encryption, and restore operations
+3. **[RESTORE_ON_BOOT.md](RESTORE_ON_BOOT.md)** - Stateless Pi mode (validates backups work on every boot)
+
+### Security & Operations
+4. **[SECURITY.md](SECURITY.md)** - Security best practices, encryption, compliance (GDPR/HIPAA)
+5. **[CONTRIBUTING.md](CONTRIBUTING.md)** - GitHub Actions CI/CD, testing, and contribution guidelines
+
+### Reference
+- **[LICENSE](LICENSE)** - MIT License
+- **[.env.example](.env.example)** - Environment variables template
+
+**All documentation is current and tested.**
+
 ## Architecture
 
 ```mermaid
@@ -381,41 +398,25 @@ The systemd service automatically pulls latest images on Pi boot:
 - Falls back to cached images if network unavailable
 - Rebuilds backup service automatically
 
-**See detailed documentation:** [UPDATE_STRATEGY.md](UPDATE_STRATEGY.md)
-
 ## GitHub Actions CI/CD
 
-The repository includes comprehensive automated testing:
-
-### Automated Testing (Runs on Every Commit)
+Comprehensive automated testing runs on every commit:
 - ✅ Docker Compose validation
 - ✅ Shell script linting (shellcheck)
 - ✅ Python code validation
 - ✅ Security scanning (no secrets committed)
 - ✅ Documentation checks
 - ✅ Integration testing
-- ✅ Encryption testing
+- ✅ Daily security scans (TruffleHog, Trivy, Hadolint)
+- 📦 Weekly Dependabot dependency updates
 
-### Daily Security Scanning
-- 🔐 Secret detection (TruffleHog)
-- 🔐 Dockerfile security (Hadolint)
-- 🔐 Dependency vulnerabilities
-- 🔐 Docker image scanning (Trivy)
-
-### Automated Dependency Updates
-- 📦 Weekly Dependabot PRs
-- 📦 Docker images, Python packages, GitHub Actions
-
-**See detailed guide:** [GITHUB_AUTOMATION.md](GITHUB_AUTOMATION.md)
-
-**Quick summary:** [GITHUB_ACTIONS_SUMMARY.md](GITHUB_ACTIONS_SUMMARY.md)
+**See:** [CONTRIBUTING.md](CONTRIBUTING.md) for details
 
 ## Backup and Restore
 
 > **⚠️ IMPORTANT:** Container updates do NOT trigger restore from backup!
 > Your data persists in Docker volumes across updates/restarts.
-> Restore only happens on first install or after volume deletion.
-> **Read:** [UNDERSTANDING_UPDATES_AND_BACKUPS.md](UNDERSTANDING_UPDATES_AND_BACKUPS.md)
+> Restore only happens on first install, after volume deletion, or with RESTORE_ON_BOOT=true.
 
 ### Automatic Backups
 
@@ -426,37 +427,19 @@ Backups run automatically every hour by default (on the hour: 1:00, 2:00, 3:00, 
 - Last 5 local backups are kept on Pi
 - No downtime during backup
 
-**Backup Frequency:**
-- Default: Every hour (maximum data protection)
-- Configurable: Every 1, 2, 3, 6 hours, or daily via `BACKUP_SCHEDULE` in `.env`
-- See [BACKUP_PERFORMANCE.md](BACKUP_PERFORMANCE.md) for detailed analysis
+**Backup Configuration:**
+- **Frequency**: Hourly by default (configurable via `BACKUP_SCHEDULE` in `.env`)
+- **Rotation**: Intelligent policy keeps ~47 backups (hourly/daily/weekly/monthly/yearly)
+- **Encryption**: Optional AES-256 (recommended - 5 min setup)
+- **Storage**: Google Drive + last 5 local copies
 
-**Backup Rotation Policy:**
-- Keeps all hourly backups for last 24 hours
-- Keeps one daily backup for last 7 days
-- Keeps one weekly backup for last 4 weeks
-- Keeps one monthly backup for last 12 months
-- Keeps one yearly backup forever
+**See:** [BACKUP_GUIDE.md](BACKUP_GUIDE.md) for encryption setup, restore procedures, and configuration options
 
-**Result:** ~47 backups instead of thousands, saving 99% storage space!
-
-**Configure retention:** See [BACKUP_ROTATION.md](BACKUP_ROTATION.md)
-
-**Backup Encryption (Recommended for Password Security):**
-- Optional AES-256 encryption before uploading
-- Protects user passwords (even hashed) from cracking attempts
-- Simple setup with passphrase stored in 1Password
-- 5-minute setup, minimal performance impact
-
-**Enable encryption:** See [ENCRYPTED_BACKUPS_GUIDE.md](ENCRYPTED_BACKUPS_GUIDE.md)
-
-**Restore on Boot (Optional - Recommended):**
-- Enable stateless mode: Pi restores from Google Drive on every boot
-- Validates backups work automatically
+**Restore on Boot (Stateless Mode):**
+- Enable: Set `RESTORE_ON_BOOT=true` in `.env`
+- Validates backups work on every reboot
 - Makes Pi disposable - Google Drive is source of truth
-- Trade-off: Max 1 hour of data at risk (between hourly backups)
-
-**Enable restore on boot:** See [RESTORE_ON_BOOT.md](RESTORE_ON_BOOT.md)
+- **See:** [RESTORE_ON_BOOT.md](RESTORE_ON_BOOT.md)
 
 ### Manual Backup
 
@@ -627,14 +610,16 @@ docker compose restart
    - Password: From your `.env` file
    - Database: `limesurvey` (or leave empty)
 
-## Security Considerations
+## Security
 
-- Change all default passwords in `.env` file
-- Keep `google-credentials.json` secure (never commit to git)
-- Regularly update Docker images
-- Monitor backup logs
-- Set up Cloudflare Access policies for additional security
-- Consider enabling Cloudflare WAF rules
+- ✅ Change all passwords in `.env` file
+- ✅ Enable backup encryption (AES-256)
+- ✅ Store encryption key in 1Password
+- ✅ Never commit `.env` or `google-credentials.json`
+- ✅ Set up Cloudflare Access policies
+- ✅ Monitor backup logs and security scans
+
+**See:** [SECURITY.md](SECURITY.md) for comprehensive security guide, encryption setup, and compliance (GDPR/HIPAA)
 
 ## Resource Usage
 
@@ -661,44 +646,46 @@ limesurvey-lykebo/
 ├── .env                            # Environment variables (create from .env.example)
 ├── .env.example                    # Example environment file
 ├── google-credentials.json         # Google Service Account key (you provide)
-├── limesurvey.service             # Systemd service for auto-start
-├── limesurvey-watchdog.service    # Watchdog systemd service
-├── limesurvey-watchdog.timer      # Watchdog systemd timer (5 min interval)
 ├── .gitignore                     # Git ignore file
 ├── LICENSE                        # MIT License
-├── README.md                      # Main documentation
+│
+├── README.md                      # Main documentation (you are here)
 ├── QUICKSTART.md                  # 30-minute setup guide
-├── UPDATE_STRATEGY.md             # Detailed update & recovery docs
-├── RESTORE_ON_BOOT.md             # Stateless Pi mode guide
-├── ENCRYPTED_BACKUPS_GUIDE.md     # Backup encryption setup
-├── BACKUP_PERFORMANCE.md          # Backup frequency & performance guide
-├── BACKUP_ROTATION.md             # Retention policy details
-├── GITHUB_AUTOMATION.md           # GitHub Actions documentation
-├── GITHUB_ACTIONS_SUMMARY.md      # Quick automation summary
-├── PUBLISHING_TO_GITHUB.md        # Publishing guide & security checklist
-├── PORTS.md                       # Port reference guide
+├── BACKUP_GUIDE.md                # Backup configuration & encryption
+├── RESTORE_ON_BOOT.md             # Stateless Pi mode
+├── SECURITY.md                    # Security best practices
+├── CONTRIBUTING.md                # CI/CD & contributing
+│
+├── limesurvey.service             # Systemd service for auto-start
+├── limesurvey-watchdog.service    # Watchdog systemd service
+├── limesurvey-watchdog.timer      # Watchdog systemd timer (5 min)
+│
 ├── .github/                       # GitHub Actions workflows
 │   ├── workflows/
 │   │   ├── ci.yml                 # Main CI pipeline
 │   │   └── security.yml           # Security scanning
-│   ├── dependabot.yml             # Automated dependency updates
-│   └── markdown-link-check-config.json
+│   └── dependabot.yml             # Automated dependency updates
+│
 ├── backup-service/                # Backup service Docker image
 │   ├── Dockerfile
-│   ├── backup.py                  # Backup script
+│   ├── backup.py                  # Backup script with encryption
 │   ├── entrypoint.sh             # Container entrypoint
 │   └── requirements.txt          # Python dependencies
+│
 ├── scripts/                       # Utility scripts
 │   ├── restore-db.sh             # Database restore script
 │   ├── restore-on-boot.sh        # Volume cleanup for stateless mode
+│   ├── pre-commit-check.sh       # Security check before commits
 │   └── watchdog/
-│       └── health-monitor.sh     # Health monitoring & recovery script
+│       └── health-monitor.sh     # Health monitoring & recovery
+│
 ├── monitoring/                    # Monitoring configuration
 │   └── netdata/
 │       ├── health.d/             # Custom health alerts
 │       │   └── limesurvey.conf
 │       └── go.d/                 # Custom collectors
 │           └── httpcheck.conf    # HTTP monitoring config
+│
 └── backups/                       # Local backup storage (auto-created)
 ```
 
