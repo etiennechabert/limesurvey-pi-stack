@@ -29,36 +29,43 @@ A complete Docker setup for running LimeSurvey on a Raspberry Pi with automatic 
 
 ## Architecture
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    Raspberry Pi                              │
-│                                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────┐          │
-│  │  LimeSurvey  │  │   MariaDB    │  │ Adminer  │          │
-│  │   :8080      │──│   :3306      │──│  :8081   │          │
-│  └──────┬───────┘  └──────┬───────┘  └──────────┘          │
-│         │                  │                                 │
-│         │         ┌────────┴────────┐                       │
-│         │         │ Backup Service  │                       │
-│         │         │   (Hourly)      │                       │
-│         │         └────────┬────────┘                       │
-│         │                  │                                 │
-│  ┌──────┴──────┐          │        ┌──────────────────┐    │
-│  │ Cloudflare  │          │        │    Netdata       │    │
-│  │   Tunnel    │          │        │    :19999        │    │
-│  └─────────────┘          │        │  (Monitoring)    │    │
-│                            │        └──────────────────┘    │
-│  ┌──────────────────────┐ │                                 │
-│  │     Watchtower       │ │        ┌──────────────────┐    │
-│  │  (Auto-updates       │ │        │   Watchdog       │    │
-│  │   Daily @ 3 AM)      │ │        │  (Health checks  │    │
-│  └──────────────────────┘ │        │   every 5 min)   │    │
-│                            │        └──────────────────┘    │
-└────────────────────────────┼─────────────────────────────────┘
-                             │
-                             │
-                       Google Drive
-                         (Backups)
+```mermaid
+graph TB
+    subgraph "Raspberry Pi"
+        subgraph "Core Services"
+            LS[LimeSurvey<br/>:8080]
+            DB[(MariaDB<br/>:3306)]
+            ADM[Adminer<br/>:8081]
+            LS --> DB
+            ADM --> DB
+        end
+
+        subgraph "Backup & Monitoring"
+            BACKUP[Backup Service<br/>Hourly + Encryption]
+            NETDATA[Netdata<br/>:19999<br/>Monitoring]
+            DB --> BACKUP
+        end
+
+        subgraph "Automation"
+            WATCH[Watchtower<br/>Daily Updates<br/>3:15 AM]
+            WATCHDOG[Watchdog<br/>Health Checks<br/>Every 5 min]
+        end
+
+        TUNNEL[Cloudflare Tunnel<br/>Secure Access]
+        LS --> TUNNEL
+    end
+
+    BACKUP -->|Encrypted Backups| GD[Google Drive<br/>Cloud Storage]
+    TUNNEL -->|HTTPS| INTERNET((Internet))
+
+    style LS fill:#2196F3,stroke:#1976D2,color:#fff
+    style DB fill:#4CAF50,stroke:#388E3C,color:#fff
+    style BACKUP fill:#FF9800,stroke:#F57C00,color:#fff
+    style NETDATA fill:#9C27B0,stroke:#7B1FA2,color:#fff
+    style TUNNEL fill:#00BCD4,stroke:#0097A7,color:#fff
+    style GD fill:#4285F4,stroke:#1976D2,color:#fff
+    style WATCH fill:#607D8B,stroke:#455A64,color:#fff
+    style WATCHDOG fill:#795548,stroke:#5D4037,color:#fff
 ```
 
 ## Access Ports (Local Network)
