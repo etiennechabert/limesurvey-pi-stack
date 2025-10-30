@@ -1,5 +1,22 @@
 # Contributing
 
+## Table of Contents
+- [GitHub Actions CI/CD](#github-actions-cicd)
+  - [What Gets Tested](#what-gets-tested)
+  - [View Test Results](#view-test-results)
+  - [Running Tests Locally](#running-tests-locally)
+- [Contributing Changes](#contributing-changes)
+  - [Before Committing](#before-committing)
+  - [Pull Requests](#pull-requests)
+- [Code Style](#code-style)
+  - [Shell Scripts](#shell-scripts)
+  - [Python](#python)
+  - [Documentation](#documentation)
+- [Security](#security)
+  - [Never Commit](#never-commit)
+  - [If You Accidentally Commit Secrets](#if-you-accidentally-commit-secrets)
+- [Questions](#questions)
+
 ## GitHub Actions CI/CD
 
 This repository includes automated testing that runs on every commit.

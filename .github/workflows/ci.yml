@@ -171,10 +171,11 @@ jobs:
             "QUICKSTART.md"
             "LICENSE"
             ".env.example"
-            "ENCRYPTED_BACKUPS_GUIDE.md"
+            "BACKUP_GUIDE.md"
             "RESTORE_ON_BOOT.md"
-            "BACKUP_PERFORMANCE.md"
-            "UPDATE_STRATEGY.md"
+            "SECURITY.md"
+            "CONTRIBUTING.md"
+            "FOR_SURVEY_USERS.md"
           )
 
           for doc in "${REQUIRED_DOCS[@]}"; do

@@ -7,9 +7,9 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-WorkingDirectory=/home/pi/limesurvey-lykebo
+WorkingDirectory=/home/pi/limesurvey-pi-stack
 # Check RESTORE_ON_BOOT and delete volumes if enabled (validates backups work!)
-ExecStartPre=/bin/bash /home/pi/limesurvey-lykebo/scripts/restore-on-boot.sh
+ExecStartPre=/bin/bash /home/pi/limesurvey-pi-stack/scripts/restore-on-boot.sh
 # Pull latest images (ignores built images like backup service)
 ExecStartPre=/usr/bin/docker compose pull --quiet --ignore-buildable
 # Build any locally built images

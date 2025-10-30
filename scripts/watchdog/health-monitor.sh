@@ -11,7 +11,7 @@
 set -e
 
 # Configuration
-COMPOSE_DIR="/home/pi/limesurvey-lykebo"
+COMPOSE_DIR="/home/pi/limesurvey-pi-stack"
 LOG_FILE="/var/log/limesurvey-watchdog.log"
 STATE_FILE="/var/run/limesurvey-watchdog.state"
 MAX_RESTART_ATTEMPTS=3
