@@ -1,0 +1,191 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  secret-scanning:
+    name: Scan for Secrets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for secret scanning
+
+      - name: TruffleHog Secret Scanning
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+      - name: Manual secret pattern check
+        run: |
+          echo "Checking for common secret patterns..."
+
+          # Check for potential secrets in code
+          FOUND_ISSUES=0
+
+          # Pattern 1: Check for actual passwords (not placeholders)
+          if grep -r "password.*=.*['\"][^'\"]*[A-Za-z0-9!@#$%^&*]{20,}" . --exclude-dir=.git --exclude-dir=.github --exclude="*.md" 2>/dev/null; then
+            echo "⚠️  Warning: Found potential hardcoded password"
+            FOUND_ISSUES=1
+          fi
+
+          # Pattern 2: Check for AWS keys
+          if grep -rE "AKIA[0-9A-Z]{16}" . --exclude-dir=.git 2>/dev/null; then
+            echo "❌ ERROR: Found AWS access key"
+            exit 1
+          fi
+
+          # Pattern 3: Check for private keys
+          if grep -r "BEGIN.*PRIVATE KEY" . --exclude-dir=.git --exclude="*.md" 2>/dev/null; then
+            echo "⚠️  Warning: Found private key (verify it's dummy/example only)"
+          fi
+
+          # Pattern 4: Check for .env file
+          if git ls-files | grep "^\.env$"; then
+            echo "❌ ERROR: .env file is tracked in git!"
+            exit 1
+          fi
+
+          # Pattern 5: Check for google-credentials.json
+          if git ls-files | grep "google-credentials\.json"; then
+            echo "❌ ERROR: google-credentials.json is tracked in git!"
+            exit 1
+          fi
+
+          if [ $FOUND_ISSUES -eq 0 ]; then
+            echo "✓ No critical secrets found"
+          fi
+
+  dockerfile-security:
+    name: Scan Dockerfile
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Hadolint (Dockerfile linter)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: backup-service/Dockerfile
+          failure-threshold: warning
+
+  dependency-security:
+    name: Scan Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install safety
+
+      - name: Check Python dependencies for vulnerabilities
+        run: |
+          safety check -r backup-service/requirements.txt --json || true
+        continue-on-error: true
+
+      - name: Scan with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'backup-service'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+  docker-image-security:
+    name: Scan Docker Images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build backup service image
+        run: docker build -t limesurvey-backup:test backup-service/
+
+      - name: Scan backup image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'limesurvey-backup:test'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+  gitignore-validation:
+    name: Validate .gitignore
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check .gitignore is comprehensive
+        run: |
+          echo "Validating .gitignore..."
+
+          REQUIRED_PATTERNS=(
+            ".env"
+            "google-credentials.json"
+            "*.sql"
+            "*.sql.gz"
+            "*.enc"
+            "*.key"
+            "*.pem"
+          )
+
+          MISSING=0
+          for pattern in "${REQUIRED_PATTERNS[@]}"; do
+            if ! grep -q "$pattern" .gitignore; then
+              echo "ERROR: .gitignore missing pattern: $pattern"
+              MISSING=1
+            fi
+          done
+
+          if [ $MISSING -eq 1 ]; then
+            echo "❌ .gitignore is incomplete"
+            exit 1
+          fi
+
+          echo "✓ .gitignore is comprehensive"
+
+      - name: Test .gitignore effectiveness
+        run: |
+          echo "Testing .gitignore patterns..."
+
+          # Create dummy sensitive files
+          touch .env
+          touch google-credentials.json
+          mkdir -p backups
+          touch backups/test.sql
+          touch backups/test.sql.gz
+          touch backups/test.sql.gz.enc
+
+          # Check they're ignored
+          if git status --porcelain | grep -E "\.env|google-credentials\.json|backups/.*\.sql"; then
+            echo "❌ ERROR: Sensitive files not properly ignored!"
+            git status
+            exit 1
+          fi
+
+          echo "✓ .gitignore is working correctly"

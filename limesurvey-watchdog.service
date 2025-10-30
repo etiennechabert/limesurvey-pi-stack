@@ -1,0 +1,15 @@
+[Unit]
+Description=LimeSurvey Health Monitor Watchdog
+After=limesurvey.service
+Requires=limesurvey.service
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/home/pi/limesurvey-lykebo
+ExecStart=/home/pi/limesurvey-lykebo/scripts/watchdog/health-monitor.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

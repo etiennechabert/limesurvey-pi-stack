@@ -1,0 +1,30 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^http://localhost"
+    },
+    {
+      "pattern": "^http://<"
+    },
+    {
+      "pattern": "^https://your-domain.com"
+    },
+    {
+      "pattern": "^https://survey.yourdomain.com"
+    },
+    {
+      "pattern": "^http://raspberry-pi-ip"
+    },
+    {
+      "pattern": "^http://<raspberry-pi-ip>"
+    },
+    {
+      "pattern": "^https://one.dash.cloudflare.com"
+    }
+  ],
+  "timeout": "20s",
+  "retryOn429": true,
+  "retryCount": 3,
+  "fallbackRetryDelay": "30s",
+  "aliveStatusCodes": [200, 206]
+}

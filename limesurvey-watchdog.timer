@@ -1,0 +1,12 @@
+[Unit]
+Description=LimeSurvey Health Monitor Watchdog Timer
+Requires=limesurvey-watchdog.service
+
+[Timer]
+# Run every 5 minutes
+OnBootSec=5min
+OnUnitActiveSec=5min
+Unit=limesurvey-watchdog.service
+
+[Install]
+WantedBy=timers.target

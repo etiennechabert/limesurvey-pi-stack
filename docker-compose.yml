@@ -1,0 +1,236 @@
+version: '3.8'
+
+services:
+  # MariaDB Database
+  database:
+    image: mariadb:11
+    container_name: limesurvey_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-limesurvey}
+      MYSQL_USER: ${MYSQL_USER:-limesurvey}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      GOOGLE_DRIVE_FOLDER_ID: ${GOOGLE_DRIVE_FOLDER_ID}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./scripts/restore-db.sh:/docker-entrypoint-initdb.d/restore-db.sh:ro
+      - ./backups:/backups
+      - ./google-credentials.json:/backups/google-credentials.json:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - limesurvey_network
+
+  # LimeSurvey Application
+  limesurvey:
+    image: martialblog/limesurvey:latest
+    container_name: limesurvey_app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DB_TYPE: mysql
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE:-limesurvey}
+      DB_USERNAME: ${MYSQL_USER:-limesurvey}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      ADMIN_USER: ${LIMESURVEY_ADMIN_USER:-admin}
+      ADMIN_NAME: ${LIMESURVEY_ADMIN_NAME:-Administrator}
+      ADMIN_EMAIL: ${LIMESURVEY_ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${LIMESURVEY_ADMIN_PASSWORD}
+      PUBLIC_URL: ${PUBLIC_URL}
+    volumes:
+      - limesurvey_data:/var/www/html/upload
+      - limesurvey_config:/var/www/html/application/config
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/index.php"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - limesurvey_network
+
+  # Database Backup Service
+  db_backup:
+    build:
+      context: ./backup-service
+      dockerfile: Dockerfile
+    container_name: limesurvey_backup
+    restart: unless-stopped
+    environment:
+      MYSQL_HOST: database
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-limesurvey}
+      GOOGLE_DRIVE_FOLDER_ID: ${GOOGLE_DRIVE_FOLDER_ID}
+      # Backup schedule (cron format) - see BACKUP_PERFORMANCE.md for analysis
+      BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-0 * * * *}  # Default: Every hour
+      # Backup retention policy (Google Drive)
+      BACKUP_KEEP_HOURLY_HOURS: ${BACKUP_KEEP_HOURLY_HOURS:-24}
+      BACKUP_KEEP_DAILY_DAYS: ${BACKUP_KEEP_DAILY_DAYS:-7}
+      BACKUP_KEEP_WEEKLY_WEEKS: ${BACKUP_KEEP_WEEKLY_WEEKS:-4}
+      BACKUP_KEEP_MONTHLY_MONTHS: ${BACKUP_KEEP_MONTHLY_MONTHS:-12}
+      BACKUP_KEEP_YEARLY: ${BACKUP_KEEP_YEARLY:-true}
+      # Backup encryption (set to enable AES-256 encryption - store key in 1Password!)
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
+    volumes:
+      - ./backups:/backups
+      - ./google-credentials.json:/app/credentials.json:ro
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "cron"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - limesurvey_network
+
+  # Cloudflare Tunnel
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflare_tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - limesurvey_network
+    depends_on:
+      limesurvey:
+        condition: service_healthy
+
+  # Database Admin (Adminer)
+  adminer:
+    image: adminer:latest
+    container_name: limesurvey_adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: database
+      ADMINER_DESIGN: pepa-linha
+    healthcheck:
+      test: ["CMD", "php", "-r", "if (@file_get_contents('http://localhost:8080') === false) exit(1);"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - limesurvey_network
+    depends_on:
+      database:
+        condition: service_healthy
+
+  # Netdata - Comprehensive Monitoring
+  netdata:
+    image: netdata/netdata:latest
+    container_name: limesurvey_netdata
+    restart: unless-stopped
+    ports:
+      - "19999:19999"
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    environment:
+      # Netdata configuration
+      NETDATA_CLAIM_TOKEN: ${NETDATA_CLAIM_TOKEN:-}
+      NETDATA_CLAIM_URL: https://app.netdata.cloud
+      NETDATA_CLAIM_ROOMS: ${NETDATA_CLAIM_ROOMS:-}
+      # Docker socket access for container monitoring
+      DOCKER_HOST: /var/run/docker.sock
+      # Hostname
+      NETDATA_HOSTNAME: limesurvey-pi
+    volumes:
+      # Docker socket for container metrics
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Host metrics
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      # Netdata data persistence
+      - netdata_config:/etc/netdata
+      - netdata_lib:/var/lib/netdata
+      - netdata_cache:/var/cache/netdata
+      # Custom health alerts configuration
+      - ./monitoring/netdata/health.d:/etc/netdata/health.d:ro
+      - ./monitoring/netdata/go.d:/etc/netdata/go.d:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:19999/api/v1/info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - limesurvey_network
+
+  # Watchtower - Automated Container Updates
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: limesurvey_watchtower
+    restart: unless-stopped
+    environment:
+      # Check for updates daily at 3:15 AM (avoids hourly backup at 3:00 AM)
+      WATCHTOWER_SCHEDULE: "0 15 3 * * *"
+      # Clean up old images after update
+      WATCHTOWER_CLEANUP: "true"
+      # Don't update Watchtower itself
+      WATCHTOWER_INCLUDE_STOPPED: "false"
+      WATCHTOWER_INCLUDE_RESTARTING: "true"
+      # Enable notifications (optional)
+      WATCHTOWER_NOTIFICATIONS: ${WATCHTOWER_NOTIFICATIONS:-}
+      WATCHTOWER_NOTIFICATION_URL: ${WATCHTOWER_NOTIFICATION_URL:-}
+      # Monitor specific containers (or leave empty for all)
+      WATCHTOWER_LABEL_ENABLE: "true"
+      # Rolling restart - one at a time
+      WATCHTOWER_ROLLING_RESTART: "true"
+      # Stop timeout - give containers time to shut down gracefully
+      WATCHTOWER_TIMEOUT: "30s"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - limesurvey_network
+
+volumes:
+  db_data:
+  limesurvey_data:
+  limesurvey_config:
+  netdata_config:
+  netdata_lib:
+  netdata_cache:
+
+networks:
+  limesurvey_network:
+    driver: bridge
