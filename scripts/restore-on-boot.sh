@@ -42,14 +42,14 @@ fi
 # List volumes that will be deleted
 echo ""
 echo "Volumes to be deleted:"
-docker volume ls | grep limesurvey-lykebo || echo "No volumes found (first boot?)"
+docker volume ls | grep limesurvey-pi-stack || echo "No volumes found (first boot?)"
 echo ""
 
 # Delete volumes (this triggers restore on next startup)
 echo "Deleting volumes..."
-docker volume rm limesurvey-lykebo_db_data 2>/dev/null && echo "✓ Deleted: db_data" || echo "- db_data not found (may not exist yet)"
-docker volume rm limesurvey-lykebo_limesurvey_data 2>/dev/null && echo "✓ Deleted: limesurvey_data" || echo "- limesurvey_data not found (may not exist yet)"
-docker volume rm limesurvey-lykebo_limesurvey_config 2>/dev/null && echo "✓ Deleted: limesurvey_config" || echo "- limesurvey_config not found (may not exist yet)"
+docker volume rm limesurvey-pi-stack_db_data 2>/dev/null && echo "✓ Deleted: db_data" || echo "- db_data not found (may not exist yet)"
+docker volume rm limesurvey-pi-stack_limesurvey_data 2>/dev/null && echo "✓ Deleted: limesurvey_data" || echo "- limesurvey_data not found (may not exist yet)"
+docker volume rm limesurvey-pi-stack_limesurvey_config 2>/dev/null && echo "✓ Deleted: limesurvey_config" || echo "- limesurvey_config not found (may not exist yet)"
 
 # Note: We don't delete Netdata volumes as they contain monitoring configuration
 echo ""

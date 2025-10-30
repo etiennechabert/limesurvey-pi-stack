@@ -2,6 +2,27 @@
 
 Complete guide for backup configuration, encryption, and restore operations.
 
+## Table of Contents
+- [Quick Start](#quick-start)
+  - [Enable Encryption](#enable-encryption-recommended---5-minutes)
+- [Backup Configuration](#backup-configuration)
+  - [Frequency](#frequency)
+  - [Retention Policy](#retention-policy)
+  - [Encryption](#encryption)
+- [Restore Operations](#restore-operations)
+  - [From Encrypted Backup](#from-encrypted-backup)
+  - [Manual Backup](#manual-backup)
+  - [Check Backup Status](#check-backup-status)
+- [Performance](#performance)
+  - [Expected Timing](#expected-timing)
+  - [Resource Usage](#resource-usage)
+- [Data Persistence](#data-persistence)
+  - [What Persists Across Reboots](#what-persists-across-reboots)
+  - [When Restore Happens](#when-restore-happens)
+- [Troubleshooting](#troubleshooting)
+- [FAQ](#faq)
+- [Best Practices](#best-practices)
+
 ## Quick Start
 
 ### Enable Encryption (Recommended - 5 minutes)
@@ -85,7 +106,7 @@ gunzip backup.sql.gz
 
 # 5. Restore
 docker compose down
-docker volume rm limesurvey-lykebo_db_data
+docker volume rm limesurvey-pi-stack_db_data
 docker compose up -d database
 sleep 30
 docker compose exec -T database mysql -uroot -p$MYSQL_ROOT_PASSWORD limesurvey < backup.sql

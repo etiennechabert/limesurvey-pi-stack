@@ -38,6 +38,9 @@ A complete Docker setup for running LimeSurvey on a Raspberry Pi with automatic 
 4. **[SECURITY.md](SECURITY.md)** - Security best practices, encryption, compliance (GDPR/HIPAA)
 5. **[CONTRIBUTING.md](CONTRIBUTING.md)** - GitHub Actions CI/CD, testing, and contribution guidelines
 
+### For Survey Users
+6. **[FOR_SURVEY_USERS.md](FOR_SURVEY_USERS.md)** - Non-technical guide for people taking surveys
+
 ### Reference
 - **[LICENSE](LICENSE)** - MIT License
 - **[.env.example](.env.example)** - Environment variables template
@@ -129,9 +132,9 @@ sudo reboot
 
 ```bash
 cd ~
-git clone <your-repo-url> limesurvey-lykebo
-# OR copy the files manually to ~/limesurvey-lykebo
-cd limesurvey-lykebo
+git clone <your-repo-url> limesurvey-pi-stack
+# OR copy the files manually to ~/limesurvey-pi-stack
+cd limesurvey-pi-stack
 ```
 
 ### 3. Configure Google Drive API
@@ -162,8 +165,8 @@ cd limesurvey-lykebo
 
 6. Rename and place the key:
    ```bash
-   mv ~/Downloads/your-project-*.json ~/limesurvey-lykebo/google-credentials.json
-   chmod 600 ~/limesurvey-lykebo/google-credentials.json
+   mv ~/Downloads/your-project-*.json ~/limesurvey-pi-stack/google-credentials.json
+   chmod 600 ~/limesurvey-pi-stack/google-credentials.json
    ```
 
 #### Create Google Drive Backup Folder
@@ -251,7 +254,7 @@ sudo cp limesurvey.service /etc/systemd/system/
 
 # Edit the service file to match your path
 sudo nano /etc/systemd/system/limesurvey.service
-# Change WorkingDirectory to your actual path (default is /home/pi/limesurvey-lykebo)
+# Change WorkingDirectory to your actual path (default is /home/pi/limesurvey-pi-stack)
 
 # Reload systemd
 sudo systemctl daemon-reload
@@ -464,7 +467,7 @@ To manually restore from a backup:
 
 2. Remove the restore marker:
    ```bash
-   docker volume rm limesurvey-lykebo_db_data
+   docker volume rm limesurvey-pi-stack_db_data
    ```
 
 3. Start containers (will auto-restore latest backup):
@@ -641,7 +644,7 @@ Note: These are approximate values. Actual usage depends on survey complexity, n
 ## File Structure
 
 ```
-limesurvey-lykebo/
+limesurvey-pi-stack/
 ├── docker-compose.yml              # Main Docker Compose configuration
 ├── .env                            # Environment variables (create from .env.example)
 ├── .env.example                    # Example environment file

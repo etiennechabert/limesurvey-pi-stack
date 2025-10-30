@@ -1,5 +1,30 @@
 # Restore on Boot - Stateless Pi Mode
 
+## Table of Contents
+- [What is Restore on Boot?](#what-is-restore-on-boot)
+- [Why Use This?](#why-use-this)
+  - [Benefits](#-benefits)
+  - [Trade-offs](#️-trade-offs)
+- [How It Works](#how-it-works)
+- [Setup (2 Minutes)](#setup-2-minutes)
+  - [Step 1: Enable in .env](#step-1-enable-in-env)
+  - [Step 2: Make Script Executable](#step-2-make-script-executable)
+  - [Step 3: Update Systemd Service](#step-3-update-systemd-service)
+  - [Step 4: Verify It's Working](#step-4-verify-its-working)
+  - [Step 5: Test with Reboot](#step-5-test-with-reboot)
+- [Monitoring & Verification](#monitoring--verification)
+  - [Check Restore Logs](#check-restore-logs)
+  - [Expected Log Output](#expected-log-output)
+- [Use Cases](#use-cases)
+  - [When to Enable RESTORE_ON_BOOT](#when-to-enable-restore_on_boot)
+  - [When to Keep Normal Mode](#when-to-keep-normal-mode-restore_on_bootfalse)
+- [Disaster Recovery Scenarios](#disaster-recovery-scenarios)
+- [Best Practices](#best-practices)
+- [Troubleshooting](#troubleshooting)
+- [FAQ](#faq)
+- [Recommendation](#recommendation)
+- [Next Steps](#next-steps)
+
 ## What is Restore on Boot?
 
 When enabled, your Raspberry Pi will **delete all Docker volumes and restore from the latest Google Drive backup on every boot**. This makes your Pi completely stateless - Google Drive becomes your single source of truth.
@@ -90,7 +115,7 @@ When enabled, your Raspberry Pi will **delete all Docker volumes and restore fro
 ### Step 1: Enable in .env
 
 ```bash
-cd ~/limesurvey-lykebo
+cd ~/limesurvey-pi-stack
 nano .env
 ```
 
@@ -177,9 +202,9 @@ This will DELETE all Docker volumes and restore from Google Drive backup.
 Google Drive is your source of truth.
 
 Volumes to be deleted:
-limesurvey-lykebo_db_data
-limesurvey-lykebo_limesurvey_data
-limesurvey-lykebo_limesurvey_config
+limesurvey-pi-stack_db_data
+limesurvey-pi-stack_limesurvey_data
+limesurvey-pi-stack_limesurvey_config
 
 Deleting volumes...
 ✓ Deleted: db_data
@@ -290,7 +315,7 @@ On startup, database will restore from latest Google Drive backup.
 ```bash
 # Manual restore process:
 docker compose down
-docker volume rm limesurvey-lykebo_db_data
+docker volume rm limesurvey-pi-stack_db_data
 docker compose up -d
 ```
 
@@ -348,7 +373,7 @@ docker compose logs db_backup | grep "Backup completed successfully"
 - Test restore monthly:
   ```bash
   docker compose down
-  docker volume rm limesurvey-lykebo_db_data
+  docker volume rm limesurvey-pi-stack_db_data
   docker compose up -d
   docker compose logs database -f
   ```
@@ -453,7 +478,7 @@ sudo journalctl -u limesurvey.service -b | grep "RESTORE_ON_BOOT"
 ```bash
 # 1. Download specific backup from Google Drive
 # 2. Stop containers: docker compose down
-# 3. Delete volume: docker volume rm limesurvey-lykebo_db_data
+# 3. Delete volume: docker volume rm limesurvey-pi-stack_db_data
 # 4. Start database only: docker compose up -d database
 # 5. Wait 30 seconds
 # 6. Restore specific backup:

@@ -1,5 +1,24 @@
 # Security Guide
 
+## Table of Contents
+- [Quick Security Checklist](#quick-security-checklist)
+- [Current Security Status](#current-security-status)
+- [User Password Security](#user-password-security)
+- [Backup Encryption](#backup-encryption)
+- [File Security](#file-security)
+- [Network Security](#network-security)
+- [LimeSurvey Security Settings](#limesurvey-security-settings)
+- [Compliance](#compliance)
+  - [GDPR](#gdpr-european-data)
+  - [HIPAA](#hipaa-us-healthcare)
+- [Security Monitoring](#security-monitoring)
+- [Vulnerability Management](#vulnerability-management)
+- [Best Practices](#best-practices)
+- [Incident Response](#incident-response)
+- [FAQ](#faq)
+- [Security Levels](#security-levels)
+- [Resources](#resources)
+
 ## Quick Security Checklist
 
 - [ ] Change all passwords in `.env` file

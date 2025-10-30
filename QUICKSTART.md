@@ -1,5 +1,22 @@
 # Quick Start Guide
 
+## Table of Contents
+- [Prerequisites Checklist](#prerequisites-checklist)
+- [Step-by-Step Setup (30 minutes)](#step-by-step-setup-30-minutes)
+  - [1. Install Docker](#1-install-docker-5-minutes)
+  - [2. Copy Files to Raspberry Pi](#2-copy-files-to-raspberry-pi-2-minutes)
+  - [3. Google Drive Setup](#3-google-drive-setup-10-minutes)
+  - [4. Cloudflare Tunnel Setup](#4-cloudflare-tunnel-setup-8-minutes)
+  - [5. Configure Environment](#5-configure-environment-3-minutes)
+  - [6. Start Everything](#6-start-everything-2-minutes)
+  - [7. Enable Auto-Start](#7-enable-auto-start-2-minutes)
+- [Verify Installation](#verify-installation)
+- [First Backup Test](#first-backup-test)
+- [Optional: Enable Backup Encryption](#optional-enable-backup-encryption-recommended---5-minutes)
+- [Optional: Enable Restore on Boot](#optional-enable-restore-on-boot-recommended---2-minutes)
+- [Next Steps](#next-steps)
+- [Troubleshooting](#troubleshooting)
+
 ## Prerequisites Checklist
 
 - [ ] Raspberry Pi 5 with 8GB+ RAM
@@ -23,9 +40,9 @@ sudo reboot
 
 ```bash
 cd ~
-# Copy this folder to ~/limesurvey-lykebo
-# Or clone from git: git clone <your-repo> limesurvey-lykebo
-cd limesurvey-lykebo
+# Copy this folder to ~/limesurvey-pi-stack
+# Or clone from git: git clone <your-repo> limesurvey-pi-stack
+cd limesurvey-pi-stack
 ```
 
 ### 3. Google Drive Setup (10 minutes)
