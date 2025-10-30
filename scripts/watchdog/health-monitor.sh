@@ -7,6 +7,9 @@
 # 1. If containers are unhealthy -> Try to restart them
 # 2. If restart fails multiple times -> Reboot Pi (last resort)
 #
+# shellcheck disable=SC2155  # Declare and assign separately - not critical for this script
+# shellcheck disable=SC2124  # Array to string assignment for log messages
+# shellcheck disable=SC2005  # echo $(cmd) is intentional for formatting
 
 set -e
 
