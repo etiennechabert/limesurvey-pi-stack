@@ -1,0 +1,4 @@
+# TruffleHog ignore patterns
+# Exclude CI workflow files that contain dummy credentials for testing
+.github/workflows/ci.yml
+.github/workflows/security.yml

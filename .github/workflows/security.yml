@@ -27,6 +27,8 @@ jobs:
           # Only set base for pull requests, not for pushes to main
           base: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || '' }}
           head: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'HEAD' }}
+          # Exclude CI workflows that contain dummy test credentials
+          extra_args: --exclude-paths=.trufflehogignore
 
       - name: Manual secret pattern check
         run: |
@@ -80,7 +82,8 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: backup-service/Dockerfile
-          failure-threshold: warning
+          failure-threshold: error
+          ignore: DL3008  # Pinning apt versions is impractical
 
   dependency-security:
     name: Scan Dependencies
