@@ -10,22 +10,26 @@ A complete Docker setup for running LimeSurvey on a Raspberry Pi with automatic 
 
 ## Features
 
+**Core:**
 - LimeSurvey survey platform
-- MariaDB database with Adminer web interface
-- Automatic hourly database backups to Google Drive
-- **Intelligent backup rotation** (grandfather-father-son) saves 99% storage
-- **Backup encryption** with AES-256 (protects user passwords)
-- **Restore on boot** - optional stateless mode validates backups work every reboot
-- Automatic database restoration from Google Drive on startup
-- Cloudflare Tunnel for secure access without port forwarding
-- Netdata monitoring (host metrics, container metrics, HTTP monitoring)
-- **Docker health checks** for all containers
-- **Watchtower** for automatic daily updates (3:15 AM)
-- **Watchdog** for automatic recovery and Pi reboot on critical failures
-- **Image pull on startup** ensures latest versions
-- Auto-start on Raspberry Pi boot
-- Fully autonomous and self-healing
-- **GitHub Actions CI/CD** - Automated testing and security scanning
+- MariaDB database with Adminer interface
+- Cloudflare Tunnel (no port forwarding required)
+
+**Backups:**
+- Hourly automated backups to Google Drive
+- AES-256 encryption
+- Intelligent rotation (grandfather-father-son)
+- Optional restore-on-boot (stateless mode)
+
+**Monitoring & Updates:**
+- Netdata monitoring (system, containers, HTTP)
+- Watchtower automatic updates
+- Watchdog auto-recovery on failures
+
+**DevOps:**
+- GitHub Actions CI/CD
+- Automated security scanning
+- Systemd auto-start
 
 ## 📚 Documentation
 
