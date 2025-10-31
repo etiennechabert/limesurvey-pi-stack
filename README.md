@@ -49,7 +49,25 @@ A complete Docker setup for running LimeSurvey on a Raspberry Pi with automatic 
 - **[LICENSE](LICENSE)** - MIT License
 - **[.env.example](.env.example)** - Environment variables template
 
-**All documentation is current and tested.**
+## Table of Contents
+- [Features](#features)
+- [Documentation](#-documentation)
+- [Architecture](#architecture)
+- [Access Ports](#access-ports-local-network)
+- [Prerequisites](#prerequisites)
+- [Initial Setup](#initial-setup)
+- [Accessing Services](#accessing-services)
+- [Health Checks & Automated Updates](#health-checks--automated-updates)
+- [GitHub Actions CI/CD](#github-actions-cicd)
+- [Backup and Restore](#backup-and-restore)
+- [Maintenance](#maintenance)
+- [Troubleshooting](#troubleshooting)
+- [Security](#security)
+- [Resource Usage](#resource-usage)
+- [File Structure](#file-structure)
+- [Quick Reference](#quick-reference)
+- [License](#license)
+- [Support](#support)
 
 ## Architecture
 
